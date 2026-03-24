@@ -49,7 +49,6 @@ float RFdistance = 0;  // (cm)
 const int MiningServoPin = 12;
 const int TowerServoPin = 11;
 int MineDelay = 150;  // Amount of time to wait between mining strokes
-const int numHitsWood[4] = { 5, 10, 10, 10 };
 int mineStrokes;
 const int mineServoRest = 45;
 const int mine1 = 130;
@@ -74,7 +73,12 @@ const int LS1Pin = 43;  // Block loading limit switch
 const int LS2Pin = 42;  // Block unloading limit switch
 bool LS1 = false;
 bool LS2 = false;
-
+const int numHitsWood[4] = { 5, 4, 2, 1 };
+const int numHitsStone[4] = {10, 5, 3, 2};
+const int numHitsIron[4] = { 11, 10, 5, 3 };
+const int numHitsDiamond[4] = { 11, 11, 10, 5 };
+int currentAxe = 1; // For PM 10, assume you start with a stone pickaxe
+bool MINEABLE = true;
 // Time constants
 double t = 0.;
 double tStart = 0.;

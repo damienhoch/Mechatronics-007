@@ -4,21 +4,23 @@ void mine(void){
         switch (blockColor) {
           case 'R':
             Serial.println("R");
-            mineStrokes = numHitsWood[2];
+            mineStrokes = numHitsIron[currentAxe];
             SENSING = false;
             break;
           case 'Y':
             Serial.println("Y");
-            mineStrokes = numHitsWood[1];
+            mineStrokes = numHitsStone[currentAxe];
             SENSING = false;
             break;
           case 'B':
             Serial.println("B");
-            mineStrokes = numHitsWood[3];
+            mineStrokes = numHitsDiamond[currentAxe];
             SENSING = false;
             break;
         }
       }
+      if (mineStrokes <= 10) MINEABLE = true;
+      else MINEABLE = false, mineStrokes = 10;
       if (TOWERDOWN) {
         MiningServo.write(mine1);
         delay(125);
