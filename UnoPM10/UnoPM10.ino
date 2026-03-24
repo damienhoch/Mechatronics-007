@@ -21,7 +21,7 @@ void setup()
   // Print Command Instructions
   Serial.println("\nHello! To send commands to the MEGA, type any of the following commands with spaces deliminating inputs:");
   Serial.println("Commands:\nS : Stop Current Action");
-  Serial.println("D <F/R> <distance (cm)> <speed (cm/s)> : Drive in a straight line using encoders");
+  Serial.println("E <F/R> <distance (cm)> <speed (cm/s)> : Drive in a straight line using encoders");
   Serial.println("L <F/R> <distance (cm)> <speed (cm/s)> : Line follow, if distance is 0, line follows until rangefinder detects a wall");
   Serial.println("T <L/R> <angle (deg)> : Turn in place");
   Serial.println("T <L/R> <angle (deg)> <radius of turn (cm)> : Turn in an arc");
@@ -29,6 +29,7 @@ void setup()
   Serial.println("U <F/R> <speed (1-4)> : Load/Unload blocks");
   Serial.println("X : Drop Tower");
   Serial.println("C : Craft Unload blocks");
+  Serial.println("D <M/T/C/B> : Drive to specific location");
   // Open serial communications with the other Arduino board
   Serial1.begin(115200);  // 115200
 }
