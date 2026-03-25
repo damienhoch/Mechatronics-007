@@ -1,4 +1,4 @@
-bool lineFollow(char dir, double dist, double speedRaw) {
+bool lineFollow(char dir, double distAngle, double speedRaw) {
   bool DONE = false;
   if (PREDRIVING) {
     leftEnc.write(0);
@@ -6,18 +6,19 @@ bool lineFollow(char dir, double dist, double speedRaw) {
     elapsed_distance = 0;
     PREDRIVING = false;
     DRIVING = true;
-    theta1_final = dist / rw;
-    dist = (dist == 0) ? 1000 : dist;  // If distance is 0, line follow until rangedinders detect wall
+    distAngle = (distAngle == 0) ? 1000 : distAngle;  // If distance is 0, line follow until rangedinders detect wall
+    theta1_final = distAngle / rw;
   }
-  if (DRIVING && (elapsed_distance <= dist)) {
-    double speed = 400 * (constrain(fabs(theta1_final * speedRaw / dist), 0., 10.) / 10.);
+  if (DRIVING && (elapsed_distance - distAngle <= arrival_threshold)) {
+    double speed = 100;
     if (DEBUGMODE) Serial.println(speed);
     counts1 = leftEnc.read();
     counts2 = rightEnc.read();
     float d1 = (counts1) / (GearRatio * countsPerRev) * 2 * PI * rw;
     float d2 = (counts2) / (GearRatio * countsPerRev) * 2 * PI * rw;
-    float elapsed_distance = (d1 + d2) / 2.;  // Average elapsed distance
+    elapsed_distance = fabs((d1 + d2) / 2.);  // Average elapsed distance
     switch (dir) {
+      case 'F':
       case 'f':
         FWDCAP = true;
         digitalWrite(RENAF, HIGH);
@@ -44,14 +45,15 @@ bool lineFollow(char dir, double dist, double speedRaw) {
           md.setM1Speed(speed - (Kp * Error));
           md.setM2Speed(speed + (Kp * Error));
         } else {
-          Command = 0;
           digitalWrite(RENAF, LOW);
           md.setSpeeds(0, 0);
           DRIVING = false;
           PREDRIVING = true;
+          DONE = true;
         }
         break;
       case 'r':
+      case 'R':
         REVCAP = true;
         digitalWrite(RENAR, HIGH);
         qtrR.read(sensorValues);
@@ -80,11 +82,11 @@ bool lineFollow(char dir, double dist, double speedRaw) {
           md.setM1Speed(-speed - (Kp * Error));
           md.setM2Speed(-speed + (Kp * Error));
         } else {
-          Command = 0;
           digitalWrite(RENAR, LOW);
           md.setSpeeds(0, 0);
           DRIVING = false;
           PREDRIVING = true;
+          DONE = true;
         }
         break;
     }

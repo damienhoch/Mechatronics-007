@@ -1,13 +1,13 @@
-#include <PWMServo.h>
+#include <VarSpeedServo.h>
 #include <DualTB9051FTGMotorShieldUnoMega.h>
 #include <QTRSensors.h>
 #include <Encoder.h>
-PWMServo TowerServo;
-PWMServo MiningServo;
+VarSpeedServo TowerServo;
+VarSpeedServo MiningServo;
 
 //////////////////////////////////////////////////////////////
 // DEBUG
-bool DEBUGMODE = true;
+bool DEBUGMODE = false;
 int autonomous_speed = 3;
 int drive_to_substate = 0;
 
@@ -48,17 +48,17 @@ float RFdistance = 0;  // (cm)
 
 //////////////////////////////////////////////////////////////
 // Servos
-const int MiningServoPin = 12;
-const int TowerServoPin = 11;
-int MineDelay = 150;  // Amount of time to wait between mining strokes
+const int MiningServoPin = 41;
+const int TowerServoPin = 40;
+int MineDelay = 180;  // Amount of time to wait between mining strokes
 int mineStrokes;
 const int mineServoRest = 45;
-const int mine1 = 130;
-const int mine2 = 110;
+const int mine1 = 160;
+const int mine2 = 150;
 
 //////////////////////////////////////////////////////////////
 // General Booleans
-bool FWDCAP = false;  // Space to move ahead of the robot
+bool FWDCAP = true;  // Space to move ahead of the robot
 bool REVCAP = true;   // Space to move behind the robot
 bool TOWERDOWN = false;
 bool BLOCKMINED = false;
@@ -95,7 +95,7 @@ int thresholdHigh[][3] = { { 100, 30, 30 }, { 80, 60, 40 }, { 20, 40, 100 } };
 char blockColor;
 
 // Hall Effect Sensor
-const float HeThreshold = 0.1;  // V
+const float HeThreshold = 1.;  // V
 const int HeRead = A5;
 float HeVal = 0;
 bool SilverFish = false;
@@ -112,8 +112,8 @@ DualTB9051FTGMotorShieldUnoMega md;
 int m1c = 0, m2c = 0;       //declare and initialize motor commands
 double Kp = 100;            //Proportional Gain for Line Following
 double base_speed = 100;    //Nominal speed of robot
-int MineApproachStop = 2;   // Stop distance from the wall (cm)
-int MineApproachSlow = 5;   // Distance at which you start slowing at wall approach.
+int MineApproachStop = 2.5;   // Stop distance from the wall (cm)
+int MineApproachSlow = 7;   // Distance at which you start slowing at wall approach.
 int CraftApproachStop = 2;  // Stop distance from the wall (cm)
 int CraftApproachSlow = 5;  // Distance at which you start slowing at wall approach.
 
@@ -224,7 +224,8 @@ void loop() {
       break;
     case 'd':
     case 'D':  // drive to specific target
-      Command = driveTo(direction) ? Command : 0;
+      DONEWITHCOMMAND = driveTo(direction);
+      if(DONEWITHCOMMAND) Command = 0;
       break;
     case 'e':
     case 'E':  // Drive in straight line using encoders

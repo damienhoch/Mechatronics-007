@@ -3,11 +3,12 @@ bool driveDistance(char dir, double dist, double speed, bool VERBOSE) {
   bool SLOWING = false;
   if (PREDRIVING) {
     //Direction
-    dist = ((dir == 'f') || (dir == 'F')) ? (dist) : (-dist);
     if (dist == 0) {
       DRIVINGDISTANCEUNTILRANGEFINDER = true;
       dist = 1000;
     }
+    dist = ((dir == 'f') || (dir == 'F')) ? (dist) : (-dist);
+
     // Zero
     leftEnc.write(0);
     rightEnc.write(0);
@@ -26,8 +27,11 @@ bool driveDistance(char dir, double dist, double speed, bool VERBOSE) {
     theta2_final = dist / rw;
     omega1_des = fabs(theta1_final * speed / dist) * (dist > 0 ? 1 : -1);
     omega2_des = fabs(theta2_final * speed / dist) * (dist > 0 ? 1 : -1);
-    t_old = 0.;
     t0 = micros() / 1000000.;
+    t_old = 0.;
+    // Give the trajectory a head start so error != 0 immediately
+    theta1_des = omega1_des * 0.02;  // seed with one ~20ms step
+    theta2_des = omega2_des * 0.02;
     // Bools
     PREDRIVING = false;
     DRIVING = true;
@@ -76,8 +80,8 @@ bool driveDistance(char dir, double dist, double speed, bool VERBOSE) {
 
     // Uncomment these four lines in section 4.4
     if (SLOWING) {
-      V1m = constrain(V1m,-5,5);
-      V2m = constrain(V2m, -5,5);
+      V1m = constrain(V1m, -5, 5);
+      V2m = constrain(V2m, -5, 5);
     } else {
       V1m = constrain(V1m, -10, 10);
       V2m = constrain(V2m, -10, 10);

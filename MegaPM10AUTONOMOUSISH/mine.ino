@@ -22,12 +22,11 @@ void mine() {
   if (mineStrokes <= 10) MINEABLE = true;
   else MINEABLE = false, mineStrokes = 10;
   if (TOWERDOWN) {
-    MiningServo.write(mine1);
-    delay(125);
+    MiningServo.write(mine1,255,true);
     for (int i = 0; i <= mineStrokes; i++) {
-      MiningServo.write(mine2);
+      MiningServo.write(mine2,255);
       delay(MineDelay);
-      MiningServo.write(mine1);
+      MiningServo.write(mine1,255);
       delay(MineDelay);
     }
     BLOCKMINED = true;
@@ -49,7 +48,6 @@ void mine() {
           HeVals[i] = map(analogRead(A5), 0, 1023, 0, 500) / 100.0;
         }
         HeVal = movingAverage(HeVals, 5);
-        if (DEBUGMODE) Serial.println(HeVal);
         if (abs(HeVal - quiescent) > HeThreshold) {
           SilverFish = true;
           Serial.println("Silverfish Detected");
@@ -61,9 +59,9 @@ void mine() {
     analogWrite(BeltPWM, 0);
     if (SilverFish) {
       for (int i = 0; i < 10; i++) {
-        MiningServo.write(mine2);
+        MiningServo.write(mine2,255);
         delay(MineDelay);
-        MiningServo.write(mine1);
+        MiningServo.write(mine1,255);
         delay(MineDelay);
       }
     }
