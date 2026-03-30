@@ -4,9 +4,10 @@ bool driveDistance(char dir, double dist, double speed, bool VERBOSE) {
   if (PREDRIVING) {
     //Direction
     if (dist == 0) {
+      if (VERBOSE) Serial.println("DRIVING UNTIL RANGEFINDER DETECTS PREBONK CONDITION");
       DRIVINGDISTANCEUNTILRANGEFINDER = true;
       dist = 1000;
-    } else{
+    } else {
       DRIVINGDISTANCEUNTILRANGEFINDER = false;
     }
     dist = ((dir == 'f') || (dir == 'F')) ? (dist) : (-dist);
@@ -41,17 +42,35 @@ bool driveDistance(char dir, double dist, double speed, bool VERBOSE) {
   if (DRIVING) {
     float V1m, V2m;
     float deltaT;
-    if (DRIVINGDISTANCEUNTILRANGEFINDER) {
-      // Rangefinder
-      RFdistance = rangefinderDistance(analogRead(RFRF), beta, gamma);
-      if (RFdistance <= CraftApproachStop) {
-        DRIVING = false;
-        DRIVINGDISTANCEUNTILRANGEFINDER = false;
-      }
-      if (RFdistance <= CraftApproachSlow) {
-        SLOWING = true;
-      }
+    // Rangefinder
+    switch (dir) {
+      case 'f':
+      case 'F':
+        RFdistance = rangefinderDistance(analogRead(RFRF), beta, gamma);
+        if (RFdistance <= CraftApproachStop) {
+          DRIVING = false;
+          DRIVINGDISTANCEUNTILRANGEFINDER = false;
+          md.setSpeeds(0, 0);
+        }
+        if (RFdistance <= CraftApproachSlow) {
+          SLOWING = true;
+        }
+        break;
+      case 'r':
+      case 'R':
+        RFdistance = rangefinderDistance(analogRead(RFRR), beta, gamma);
+        if (RFdistance <= MineApproachStop) {
+          DRIVING = false;
+          DRIVINGDISTANCEUNTILRANGEFINDER = false;
+          md.setSpeeds(0, 0);
+        }
+        if (RFdistance <= MineApproachSlow) {
+          SLOWING = true;
+        }
+        break;
     }
+
+
 
     t = micros() / 1000000. - t0;
     deltaT = t - t_old;  // sample time
@@ -102,10 +121,11 @@ bool driveDistance(char dir, double dist, double speed, bool VERBOSE) {
     md.setSpeeds(m1c, m2c);  // send motor commands
 
     // Check if we've arrived
-    DRIVING = ((fabs(theta1 - theta1_final) <= arrival_threshold) && (fabs(theta2 - theta2_final) <= arrival_threshold)) ? false : true;  // If both wheel are close enough, set DRIVING to false
+    if(DRIVING) DRIVING = ((fabs(theta1 - theta1_final) <= arrival_threshold) && (fabs(theta2 - theta2_final) <= arrival_threshold)) ? false : true;  // If both wheel are close enough, set DRIVING to false
 
     if (VERBOSE && (t - print_time) > 0.25) {  // non-blocking way to delay printing
       // print any variables of interest inside this if statement
+      Serial.println(RFdistance);
       Serial.print("Driving distance: ");
       Serial.println(dist);
       Serial.print(counts1);

@@ -1,6 +1,5 @@
 bool driveTo(char destination) {
   bool DONEDrive = false;
-  if (DEBUGMODE) Serial.println("Driving Called");
   switch (position) {                                  // Switch on the current position
     case 'S':                                          // Start
       if (destination == 'M' || destination == 'm') {  // Drive to Mine from Start
@@ -57,8 +56,6 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 2) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 3;
         } else if (drive_to_substate == 3) {
-          if (lineFollow('F', 10., autonomous_speed)) drive_to_substate = 4;
-        } else if (drive_to_substate == 4) {
           if (driveDistance('F', 0., autonomous_speed, DEBUGMODE)) {
             drive_to_substate = 0;
             DONEDrive = true;
@@ -121,17 +118,15 @@ bool driveTo(char destination) {
         }
       } else if (destination == 'b' || destination == 'B') {  // Drive to Chest from Crafting
         if (drive_to_substate == 0) {
-          if (lineFollow('R', 60., autonomous_speed)) drive_to_substate = 1;
+          if (lineFollow('R', 40., autonomous_speed)) drive_to_substate = 1;
         } else if (drive_to_substate == 1) {
-          if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 2;
+          if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 2;
         } else if (drive_to_substate == 2) {
-          if (driveDistance('R', 92, autonomous_speed, DEBUGMODE)) drive_to_substate = 3;
+          if (driveDistance('F', 106, autonomous_speed, DEBUGMODE)) drive_to_substate = 3;
         } else if (drive_to_substate == 3) {
-          if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 4;
+          if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('F', 10., autonomous_speed)) drive_to_substate = 5;
-        } else if (drive_to_substate == 5) {
-          if (driveDistance('F', 0., autonomous_speed, DEBUGMODE)) {
+          if (driveDistance('F', 0, autonomous_speed, DEBUGMODE)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'B';
@@ -160,14 +155,12 @@ bool driveTo(char destination) {
         if (drive_to_substate == 0) {
           if (driveDistance('R', 35, autonomous_speed, DEBUGMODE)) drive_to_substate = 1;
         } else if (drive_to_substate == 1) {
-          if (lineFollow('R', 10., autonomous_speed)) drive_to_substate = 2;
+          if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 2;
         } else if (drive_to_substate == 2) {
-          if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 3;
+          if (driveDistance('R', 135, autonomous_speed, DEBUGMODE)) drive_to_substate = 3;
         } else if (drive_to_substate == 3) {
-          if (driveDistance('R', 122, autonomous_speed, DEBUGMODE)) drive_to_substate = 4;
+          if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 5;
-        } else if (drive_to_substate == 5) {
           if (lineFollow('R', 1000., autonomous_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
@@ -176,15 +169,13 @@ bool driveTo(char destination) {
         }
       } else if (destination == 'c' || destination == 'C') {  // Drive to Crafting from Chest
         if (drive_to_substate == 0) {
-          if (driveDistance('R', 35, autonomous_speed, DEBUGMODE)) drive_to_substate = 1;
-        } else if (drive_to_substate == 1) {
-          if (lineFollow('R', 5, autonomous_speed)) drive_to_substate = 2;
+          if (driveDistance('R', 35, autonomous_speed, DEBUGMODE)) drive_to_substate = 2;
         } else if (drive_to_substate == 2) {
-          if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 3;
+          if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 3;
         } else if (drive_to_substate == 3) {
-          if (driveDistance('F', 92, autonomous_speed, DEBUGMODE)) drive_to_substate = 4;
+          if (driveDistance('R', 103, autonomous_speed, DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 5;
+          if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 5;
         } else if (drive_to_substate == 5) {
           if (lineFollow('F', 1000., autonomous_speed)) {
             drive_to_substate = 0;
@@ -194,13 +185,11 @@ bool driveTo(char destination) {
         }
       } else if (destination == 't' || destination == 'T') {  // Drive to Tree from Chest
         if (drive_to_substate == 0) {
-          if (driveDistance('R', 35, autonomous_speed, DEBUGMODE)) drive_to_substate = 1;
-        } else if (drive_to_substate == 1) {
-          if (lineFollow('R', 10., autonomous_speed)) drive_to_substate = 2;
+          if (driveDistance('R', 35, autonomous_speed, DEBUGMODE)) drive_to_substate = 2;
         } else if (drive_to_substate == 2) {
           if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 3;
         } else if (drive_to_substate == 3) {
-          if (driveDistance('R', 183, autonomous_speed, DEBUGMODE)) drive_to_substate = 4;
+          if (driveDistance('R', 193, autonomous_speed, DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 5;
         } else if (drive_to_substate == 5) {

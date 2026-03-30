@@ -11,6 +11,8 @@ bool DEBUGMODE = false;
 int autonomous_speed = 10;
 int drive_to_substate = 0;
 int crafting_substate = 0;
+int numAttempts = 0;
+const int attemptThreshold = 100; 
 
 //////////////////////////////////////////////////////////////
 //Communication Variables
@@ -18,6 +20,7 @@ char Command = 0;
 char direction;
 double distAngle;    // Distance / Angle input
 double speedRadius;  // Speed / Radius of turn
+char desiredOre[] = {'Y','R','B'};
 
 //////////////////////////////////////////////////////////////
 // Line Following
@@ -67,6 +70,8 @@ bool SENSING = true;
 bool PREDRIVING = true;  // Bool to instantiate
 bool DRIVING = true;
 bool DONEWITHCOMMAND = false;
+bool MINEFAIL = false;
+
 
 //////////////////////////////////////////////////////////////
 // Mining
@@ -86,6 +91,9 @@ bool MINEABLE = true;
 // Time constants
 double t = 0.;
 double tStart = 0.;
+double loadTime = 500.0; // Load time before considered failure. (ms)
+char currentBlocks[] = {'E','E','E','E','E','E','E'}; // Blocks on the robot.
+int numBlocks = 0;
 
 // Color Sensor
 const int colorPins[4] = { 47, 49, 48, 50 };
@@ -152,7 +160,7 @@ double theta1_final = 0;
 double theta2_final = 0;  // final desired position of wheels
 float omega1_des = 0;
 float omega2_des = 0;
-float arrival_threshold = 0.01;
+float arrival_threshold = 0.02;
 float base_omega = 2;  // Base speed for turning
 
 void setup() {
@@ -231,7 +239,7 @@ void loop() {
       break;
     case 'e':
     case 'E':  // Drive in straight line using encoders
-      Command = driveDistance(direction, distAngle, speedRadius, DEBUGMODE) ? Command : 0;
+      Command = driveDistance(direction, distAngle, speedRadius, DEBUGMODE) ? 0:Command;
       break;
     case 't':
     case 'T':  // Turn, either in an arc or in place
@@ -250,7 +258,7 @@ void loop() {
       break;
     case 'm':
     case 'M':  // Mine
-      mine();
+      if (!mine()) Command = 0;
       break;
     case 'u':
     case 'U':  // Load/Unload
@@ -258,19 +266,19 @@ void loop() {
       break;
     case 'c':
     case 'C':  // Crafting unload
-      bool DONECRAFT = craft(direction);
+      bool DONECRAFT = craft(direction,desiredOre[currentAxe+1]);
       Serial.println(DONECRAFT);
       Command = DONECRAFT ? 0:Command;
       break;
     case 'v':
     case 'V':
-      if (DEBUGMODE){
-        DEBUGMODE = false;
-        Serial.println("DEBUGMODE OFF");
-      } 
-      else {
+      if (!DEBUGMODE){
         DEBUGMODE = true;
         Serial.println("DEBUGMODE ON");
+      } 
+      else {
+        DEBUGMODE = false;
+        Serial.println("DEBUGMODE OFF");
       }
       Command = 0;
       break;

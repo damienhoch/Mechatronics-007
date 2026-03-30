@@ -17,4 +17,6 @@ void dispense() {
   digitalWrite(BeltENA1, LOW);
   digitalWrite(BeltENA2, LOW);
   analogWrite(BeltPWM, 0);
+  numBlocks = numBlocks - 1;
+  incrementLoaderArray();
 }

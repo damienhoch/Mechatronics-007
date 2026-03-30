@@ -16,6 +16,11 @@ bool lineFollow(char dir, double distAngle, double speedRaw) {
     counts2 = rightEnc.read();
     float d1 = (counts1) / (GearRatio * countsPerRev) * 2 * PI * rw;
     float d2 = (counts2) / (GearRatio * countsPerRev) * 2 * PI * rw;
+    if (DEBUGMODE){
+      Serial.print(d1);
+      Serial.print("\t");
+      Serial.println(d2);
+    }
     elapsed_distance = fabs((d1 + d2) / 2.);  // Average elapsed distance
     switch (dir) {
       case 'F':
@@ -68,9 +73,11 @@ bool lineFollow(char dir, double distAngle, double speedRaw) {
         Error = d0 - d;
         // Rangefinder
         RFdistance = rangefinderDistance(analogRead(RFRR), beta, gamma);
-        Serial.print("Range: ");
-        Serial.print(RFdistance);
-        Serial.println(" cm");
+        if (DEBUGMODE) {
+          Serial.print("Range: ");
+          Serial.print(RFdistance);
+          Serial.println(" cm");
+        }
         if (RFdistance <= MineApproachStop) {
           FWDCAP = true;
           REVCAP = false;

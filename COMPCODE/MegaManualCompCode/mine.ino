@@ -1,4 +1,10 @@
-void mine() {
+bool mine() {
+  MINEFAIL = false;
+  if(position == 'T'){
+    SENSING = false;
+    blockColor = 'W';
+    mineStrokes = numHitsWood[currentAxe];
+  }
   while (SENSING) {
     blockColor = colorSense(colorPins, thresholdLow, thresholdHigh, readPin, numSamples);
     switch (blockColor) {
@@ -38,12 +44,17 @@ void mine() {
     analogWrite(BeltPWM, 255);
     while (LS1) {
       LS1 = digitalRead(LS1Pin);
+      t = millis();
+      if(t-tStart>loadTime){
+        MINEFAIL = true;
+        LS1 = true;
+      }
     }
     delay(5);
     SilverFish = false;
-    while (LS1 == false) {
+    while (!MINEFAIL && LS1 == false) {
       LS1 = digitalRead(LS1Pin);
-      if (NOSHIELD) {
+      if (NOSHIELD && blockColor != 'W') {
         for (int i = 0; i < 5; i++) {
           HeVals[i] = map(analogRead(A5), 0, 1023, 0, 500) / 100.0;
         }
@@ -67,6 +78,11 @@ void mine() {
     }
   }
   MiningServo.write(mineServoRest);
-  Command = 0;
   SENSING = true;
+  if(!MINEFAIL){
+    currentBlocks[0] = blockColor;
+    incrementLoaderArray();
+    numBlocks = numBlocks + 1;
+  }
+  return MINEFAIL;
 }
