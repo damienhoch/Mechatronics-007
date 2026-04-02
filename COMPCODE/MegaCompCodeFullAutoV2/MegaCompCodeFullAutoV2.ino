@@ -13,6 +13,13 @@ int drive_to_substate = 0;
 int crafting_substate = 0;
 int numAttempts = 0;
 const int attemptThreshold = 100;
+char MetaState = S;
+int desiredNumOre = 3;
+int desiredNumWood = 2;
+int maxNumBlocks = 7;  // Change depending on how many we can actually fit
+char goal = 'P';
+char defaultTree = 'T';  // Tree: T = left A = right (Aspen)
+char defaultMine = 'M';  // Mine: M = left K = right
 
 //////////////////////////////////////////////////////////////
 //Communication Variables
@@ -59,6 +66,7 @@ int mineStrokes;
 const int mineServoRest = 45;
 const int mine1 = 160;
 const int mine2 = 140;
+int loadDelay = 500;
 
 //////////////////////////////////////////////////////////////
 // General Booleans
@@ -71,6 +79,7 @@ bool PREDRIVING = true;  // Bool to instantiate
 bool DRIVING = true;
 bool DONEWITHCOMMAND = false;
 bool MINEFAIL = false;
+bool START = false;  // Stop recieving comms, start driving autonomously
 
 
 //////////////////////////////////////////////////////////////
@@ -92,8 +101,8 @@ bool MINEABLE = true;
 double t = 0.;
 double tStart = 0.;
 double loadTime = 1750.0;                                      // Load time before considered failure. (ms)
-char currentBlocks[] = {'Y', 'Y', 'Y', 'W', 'W', 'E', 'E' };  // Blocks on the robot.
-int numBlocks = 5;
+char currentBlocks[] = { 'E', 'E', 'E', 'E', 'E', 'E', 'E' };  // Blocks on the robot.
+int numBlocks = 0;
 
 // Color Sensor
 const int colorPins[4] = { 47, 49, 48, 50 };
@@ -214,90 +223,214 @@ void setup() {
 }
 
 void loop() {
-  comms(DEBUGMODE);  // Check Serial Communication, set commands, inputs, etc
-  // DEBUGMODE adds serial prints
-  // Commands
-  switch (Command) {
-    case 's':
-    case 'S':  // Stop current action
-      md.setM1Speed(0);
-      md.setM2Speed(0);
-      analogWrite(BeltPWM, 0);
-      digitalWrite(BeltENA1, LOW);
-      digitalWrite(BeltENA2, LOW);
-      MiningServo.write(mineServoRest);
-      Command = 0;
-      DRIVING = false;
-      PREDRIVING = true;
-      DRIVINGDISTANCEUNTILRANGEFINDER = false;
-      drive_to_substate = 0;
-      crafting_substate = 0;
+  switch (MetaState) {
+    case 0:  // Receiving Strategic Comms (STRATCOM)
+      comms(DEBUGMODE);
+      if (START) MetaState = 1;
       break;
-    case 'd':
-    case 'D':  // drive to specific target
-      DONEWITHCOMMAND = driveTo(direction);
-      if (DONEWITHCOMMAND) Command = 0;
+    case 1:  // Starting, drive to mine
+      DONEWITHCOMMAND = driveTo(defaultMine);
+      if (DONEWITHCOMMAND) MetaState = 2;
       break;
-    case 'e':
-    case 'E':  // Drive in straight line using encoders
-      Command = driveDistance(direction, distAngle, speedRadius, DEBUGMODE) ? 0 : Command;
-      break;
-    case 't':
-    case 'T':  // Turn, either in an arc or in place
-      DONEWITHCOMMAND = turnDeg(direction, distAngle, speedRadius, DEBUGMODE);
-      if (DONEWITHCOMMAND) Command = 0;
-      break;
-    case 'l':
-    case 'L':  // Line follow F/R
-      DONEWITHCOMMAND = lineFollow(direction, distAngle, speedRadius);
-      if (DONEWITHCOMMAND) Command = 0;
-      break;
-    case 'x':
-    case 'X':  // Drop Tower
-      TowerServo.write(180);
-      TOWERDOWN = true;
-      break;
-    case 'm':
-    case 'M':  // Mine
-      mine();
-      Command = 0;
-      break;
-    case 'u':
-    case 'U':  // Load/Unload
-      loadUnload(direction);
-      break;
-    case 'c':
-    case 'C':
-      {  // Crafting unload
-        bool DONECRAFT = craft(direction, desiredOre[currentAxe + 1]);
-        Serial.println(DONECRAFT);
-        Command = DONECRAFT ? 0 : Command;
-        break;
+    case 2:  // Mining while we need ore and have space
+      if (desiredNumOre > 0 && numBlocks < maxNumBlocks) {
+        mine();
+        if (desiredOre[currentAxe] == currentBlocks[numBlocks]) {
+          desiredNumOre = desiredNumOre - 1;
+        }
+      } else if (desiredNumOre == 0 && numBlocks <= maxNumBlocks - desiredNumWood) {
+        MetaState = 3;  // Ore Aquired, getting wood
+      } else if ((goal == 'P' && desiredNumOre < 3) || (goal == 'S' && desiredNumOre == 1)) {
+        MetaState = 5;  // Drive to crafting
       }
-    case 'v':
-    case 'V':
-      Serial.println("CASE V");
-      if (!DEBUGMODE) {
-        DEBUGMODE = true;
-        Serial.println("DEBUGMODE ON");
+      break;
+    case 3:  // Driving to tree
+      DONEWITHCOMMAND = driveTo(defaultTree);
+      if (DONEWITHCOMMAND) MetaState = 4;
+      break;
+    case 4:  // Mining wood while we need wood and have space
+      if (desiredNumWood > 0 && numBlocks < maxNumBlocks) {
+        mine();
+        desiredNumWood = desiredNumWood - 1;
       } else {
-        DEBUGMODE = false;
-        Serial.println("DEBUGMODE OFF");
+        MetaState = 5;
       }
-      Command = 0;
       break;
-    case 'p':
-    case 'P':
-      currentAxe = int(distAngle);
-      Serial.println(currentAxe);
-      Command = 0;
+    case 5:  // Drive to crafting
+      DONEWITHCOMMAND = driveTo('C');
+      if (DONEWITHCOMMAND) MetaState = 6;
       break;
-    case 'g':
-    case 'G':
-      position = direction;
-      Command = 0;
+    case 6:
+      DONEWITHCOMMAND = craft(goal);
+      if (numBlocks == 0 && !DONEWITHCOMMAND) {  // Out of blocks, not done crafting
+        if (desiredNumOre > 0) {                 // Need ore, drive back to mine
+          MetaState = 1;
+        } else if (desiredNumWood > 0) {  // Need wood, drive back to tree
+          MetaState = 3;
+        }
+      } else if (DONEWITHCOMMAND) {         // Successfully crafted
+        if (currentAxe == 1 && NOSHIELD) {  // Stone axe made, make a shield
+          goal = 'S';
+          desiredNumOre = 1;
+          desiredNumWood = 6;
+          MetaState = 1;
+        } else if (currentAxe == 1) {
+          goal = 'P';
+          desiredNumOre = 3;
+          desiredNumWood = 2;
+          MetaState = 1;
+        } else if (currentAxe == 2) {  // Mining as much as possible
+          goal = 'M';
+          if (numBlocks == 0) MetaState = 7;
+          else MetaState = 9;
+        }
+      }
+      break;
+    case 7:
+      DONEWITHCOMMAND = driveTo(defaultMine);
+      if (DONEWITHCOMMAND) MetaState = 8;
+      break;
+    case 8:
+      if (numBlocks < maxNumBlocks) {
+        mine();
+      } else {
+        MetaState = 9;
+      }
+      break;
+    case 9:
+      DONEWITHCOMMAND = driveTo("B");
+      if (DONEWITHCOMMAND) MetaState = 10;
+      break;
+    case 10:
+      if (numBlocks > 0) {
+        dispense();
+      } else {
+        MetaState = 7;
+      }
       break;
     default:
       break;
+  }
+  if (MetaState == 0) {
+    switch (Command) {
+      case 's':
+      case 'S':  // Stop current action
+        md.setM1Speed(0);
+        md.setM2Speed(0);
+        analogWrite(BeltPWM, 0);
+        digitalWrite(BeltENA1, LOW);
+        digitalWrite(BeltENA2, LOW);
+        MiningServo.write(mineServoRest);
+        Command = 0;
+        DRIVING = false;
+        PREDRIVING = true;
+        DRIVINGDISTANCEUNTILRANGEFINDER = false;
+        drive_to_substate = 0;
+        crafting_substate = 0;
+        break;
+      case 'd':
+      case 'D':  // drive to specific target
+        DONEWITHCOMMAND = driveTo(direction);
+        if (DONEWITHCOMMAND) Command = 0;
+        break;
+      case 'e':
+      case 'E':  // Drive in straight line using encoders
+        Command = driveDistance(direction, distAngle, speedRadius, DEBUGMODE) ? 0 : Command;
+        break;
+      case 't':
+      case 'T':  // Set default Tree
+        switch (direction) {
+          case 'L':
+          case 'l':
+            defaultTree = 'T';
+            if (DEBUGMODE) Serial.println("Defaulting to left tree");
+            break;
+          case 'r':
+          case 'R':
+            defaultTree = 'A';
+            if (DEBUGMODE) Serial.println("Defaulting to right tree");
+            break;
+          default:
+            defaultTree = 'T';
+            break;
+        }
+        break;
+      case 'l':
+      case 'L':  // Line follow F/R
+        DONEWITHCOMMAND = lineFollow(direction, distAngle, speedRadius);
+        if (DONEWITHCOMMAND) Command = 0;
+        break;
+      case 'x':
+      case 'X':  // Drop Tower
+        TowerServo.write(180);
+        TOWERDOWN = true;
+        break;
+      case 'm':
+      case 'M':  // Set default mine
+        switch (direction) {
+          case 'L':
+          case 'l':
+            defaultMine = 'M';
+            if (DEBUGMODE) Serial.println("Defaulting to left mine");
+            break;
+          case 'r':
+          case 'R':
+            defaultMine = 'K';
+            if (DEBUGMODE) Serial.println("Defaulting to right mine");
+            break;
+          default:
+            defaultMine = 'M';
+            break;
+        }
+        break;
+      case 'u':
+      case 'U':  // Load/Unload
+        loadUnload(direction);
+        break;
+      case 'c':
+      case 'C':
+        {  // Crafting unload
+          bool DONECRAFT = craft(direction, desiredOre[currentAxe + 1]);
+          Serial.println(DONECRAFT);
+          Command = DONECRAFT ? 0 : Command;
+          break;
+        }
+      case 'v':
+      case 'V':
+        Serial.println("CASE V");
+        if (!DEBUGMODE) {
+          DEBUGMODE = true;
+          Serial.println("DEBUGMODE ON");
+        } else {
+          DEBUGMODE = false;
+          Serial.println("DEBUGMODE OFF");
+        }
+        Command = 0;
+        break;
+      case 'p':
+      case 'P':
+        currentAxe = int(distAngle);
+        Serial.println(currentAxe);
+        Command = 0;
+        break;
+      case 'g':
+      case 'G':
+        START = true;
+        Command = 0;
+        break;
+      case 'n':
+      case 'N':
+        if (!NOSHIELD) {
+          NOSHIELD = true;
+          Serial.println("NO PROTECTION (shield off)");
+        } else {
+          NOSHIELD = false;
+          Serial.println("FULL PROTECTION (shield on)");
+        }
+        Command = 0;
+        break;
+      default:
+        break;
+    }
   }
 }

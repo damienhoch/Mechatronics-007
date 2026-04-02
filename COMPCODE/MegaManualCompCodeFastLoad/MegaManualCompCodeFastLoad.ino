@@ -59,6 +59,7 @@ int mineStrokes;
 const int mineServoRest = 45;
 const int mine1 = 160;
 const int mine2 = 140;
+int loadDelay = 500;
 
 //////////////////////////////////////////////////////////////
 // General Booleans

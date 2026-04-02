@@ -1,6 +1,6 @@
 bool mine() {
   MINEFAIL = false;
-  if (position == 'T') {
+  if (position == 'T' || position == 'A') {
     SENSING = false;
     blockColor = 'W';
     mineStrokes = numHitsWood[currentAxe];
@@ -26,7 +26,10 @@ bool mine() {
     }
   }
   if (mineStrokes <= 10) MINEABLE = true;
-  else MINEABLE = false, mineStrokes = 10;
+  else {
+    MINEABLE = false, mineStrokes = 10;
+    blockColor = 'X';  // Block destroyed, need to remove
+  }
   if (TOWERDOWN) {
     MiningServo.write(mine1, 255, true);
     for (int i = 0; i <= mineStrokes; i++) {
@@ -38,20 +41,25 @@ bool mine() {
     BLOCKMINED = true;
     delay(500);
     tStart = millis();
-    LS1 = true;
+    LS1 = false;
     digitalWrite(BeltENA1, HIGH);
     digitalWrite(BeltENA2, LOW);
     analogWrite(BeltPWM, 255);
     unsigned long tStart_load = millis();
+    while (!LS1) {
+      LS1 = digitalRead(LS1Pin);
+    }
     while (LS1) {
       LS1 = digitalRead(LS1Pin);
       if (millis() - tStart_load > loadTime) {
+        break;
         //MINEFAIL = true;
         //missLoad();
       }
     }
     delay(5);
     SilverFish = false;
+    unsigned long tStart_Hall = millis();
     while (!MINEFAIL && LS1 == false) {
       LS1 = digitalRead(LS1Pin);
       if (NOSHIELD && blockColor != 'W') {
@@ -64,6 +72,7 @@ bool mine() {
           Serial.println("Silverfish Detected");
         }
       }
+      if (millis() - tStart_Hall > loadDelay) break;
     }
     digitalWrite(BeltENA1, LOW);
     digitalWrite(BeltENA2, LOW);
@@ -81,7 +90,7 @@ bool mine() {
     if (!MINEFAIL) {
       currentBlocks[numBlocks] = blockColor;
       numBlocks = numBlocks + 1;
-      if(DEBUGMODE) Serial.print(currentBlocks);
+      if (DEBUGMODE) Serial.print(currentBlocks);
     }
     return MINEFAIL;
   }

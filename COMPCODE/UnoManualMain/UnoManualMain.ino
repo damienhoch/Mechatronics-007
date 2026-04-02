@@ -23,15 +23,16 @@ void setup()
   Serial.println("Commands:\nS : Stop Current Action");
   Serial.println("E <F/R> <distance (cm)> <speed (cm/s)> : Drive in a straight line using encoders");
   Serial.println("L <F/R> <distance (cm)> <speed (cm/s)> : Line follow, if distance is 0, line follows until rangefinder detects a wall");
-  Serial.println("T <L/R> <angle (deg)> : Turn in place");
-  Serial.println("T <L/R> <angle (deg)> <radius of turn (cm)> : Turn in an arc");
-  Serial.println("M : Mine");
+  Serial.println("T <L/R> : Set tree to default to");
+  Serial.println("M <L/R> : Set default Mine to go to");
   Serial.println("U <F/R> <speed (1-4)> : Load/Unload blocks");
   Serial.println("X : Drop Tower");
   Serial.println("C : Craft Unload blocks");
   Serial.println("D <M/T/C/B> : Drive to specific location");
   Serial.println("V : Activate/Deactivate Verbose mode to debug");
   Serial.println("P <0> <0-4> : Pickaxe Level ");
+  Serial.println("N : No shield?");
+  Serial.println("G : Start driving autonomously");
   // Open serial communications with the other Arduino board
   Serial1.begin(115200);  // 115200
 }

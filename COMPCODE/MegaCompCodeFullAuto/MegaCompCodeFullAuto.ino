@@ -13,6 +13,13 @@ int drive_to_substate = 0;
 int crafting_substate = 0;
 int numAttempts = 0;
 const int attemptThreshold = 100;
+char MetaState = S;
+int desiredNumOre = 3;
+int desiredNumWood = 2;
+int maxNumBlocks = 7;  // Change depending on how many we can actually fit
+char goal = 'P';
+char defaultTree = 'L';
+char defaultMine = 'L';
 
 //////////////////////////////////////////////////////////////
 //Communication Variables
@@ -59,6 +66,7 @@ int mineStrokes;
 const int mineServoRest = 45;
 const int mine1 = 160;
 const int mine2 = 140;
+int loadDelay = 500;
 
 //////////////////////////////////////////////////////////////
 // General Booleans
@@ -71,6 +79,7 @@ bool PREDRIVING = true;  // Bool to instantiate
 bool DRIVING = true;
 bool DONEWITHCOMMAND = false;
 bool MINEFAIL = false;
+bool START = false;  // Stop recieving comms, start driving autonomously
 
 
 //////////////////////////////////////////////////////////////
@@ -92,8 +101,8 @@ bool MINEABLE = true;
 double t = 0.;
 double tStart = 0.;
 double loadTime = 1750.0;                                      // Load time before considered failure. (ms)
-char currentBlocks[] = {'Y', 'Y', 'Y', 'W', 'W', 'E', 'E' };  // Blocks on the robot.
-int numBlocks = 5;
+char currentBlocks[] = { 'E', 'E', 'E', 'E', 'E', 'E', 'E' };  // Blocks on the robot.
+int numBlocks = 0;
 
 // Color Sensor
 const int colorPins[4] = { 47, 49, 48, 50 };
@@ -217,6 +226,94 @@ void loop() {
   comms(DEBUGMODE);  // Check Serial Communication, set commands, inputs, etc
   // DEBUGMODE adds serial prints
   // Commands
+  switch (MetaState) {
+    case 0:  // Receiving Strategic Comms (STRATCOM)
+      comms(DEBUGMODE);
+      if (START) MetaState = 1;
+      break;
+    case 1:  // Starting, drive to mine
+      DONEWITHCOMMAND = driveTo('M');
+      if (DONEWITHCOMMAND) MetaState = 2;
+      break;
+    case 2:  // Mining while we need ore and have space
+      if (desiredNumOre > 0 && numBlocks < maxNumBlocks) {
+        mine();
+        if (desiredOre[currentAxe] == currentBlocks[numBlocks]) {
+          desiredNumOre = desiredNumOre - 1;
+        }
+      } else if (desiredNumOre == 0 && numBlocks <= maxNumBlocks - desiredNumWood) {
+        MetaState = 3;  // Ore Aquired, getting wood
+      } else if ((goal == 'P' && desiredNumOre < 3) || (goal == 'S' && desiredNumOre == 1)) {
+        MetaState = 5;  // Drive to crafting
+      }
+      break;
+    case 3:  // Driving to tree
+      DONEWITHCOMMAND = driveTo('T');
+      if (DONEWITHCOMMAND) MetaState = 4;
+      break;
+    case 4:  // Mining wood while we need wood and have space
+      if (desiredNumWood > 0 && numBlocks < maxNumBlocks) {
+        mine();
+        desiredNumWood = desiredNumWood - 1;
+      } else {
+        MetaState = 5;
+      }
+      break;
+    case 5:  // Drive to crafting
+      DONEWITHCOMMAND = driveTo('C');
+      if (DONEWITHCOMMAND) MetaState = 6;
+      break;
+    case 6:
+      DONEWITHCOMMAND = craft(goal);
+      if (numBlocks == 0 && !DONEWITHCOMMAND) {  // Out of blocks, not done crafting
+        if (desiredNumOre > 0) {                 // Need ore, drive back to mine
+          MetaState = 1;
+        } else if (desiredNumWood > 0) {  // Need wood, drive back to tree
+          MetaState = 3;
+        }
+      } else if (DONEWITHCOMMAND) {         // Successfully crafted
+        if (currentAxe == 1 && NOSHIELD) {  // Stone axe made, make a shield
+          goal = 'S';
+          desiredNumOre = 1;
+          desiredNumWood = 6;
+          MetaState = 1;
+        } else if (currentAxe == 1) {
+          goal = 'P';
+          desiredNumOre = 3;
+          desiredNumWood = 2;
+          MetaState = 1;
+        } else if (currentAxe == 2) {  // Mining as much as possible
+          goal = 'M';
+          if (numBlocks == 0) MetaState = 7;
+          else MetaState = 9;
+        }
+      }
+      break;
+    case 7:
+      DONEWITHCOMMAND = driveTo('M');
+      if (DONEWITHCOMMAND) MetaState = 8;
+      break;
+    case 8:
+      if (numBlocks < maxNumBlocks) {
+        mine();
+      } else {
+        MetaState = 9;
+      }
+      break;
+    case 9:
+      DONEWITHCOMMAND = driveTo("B");
+      if (DONEWITHCOMMAND) MetaState = 10;
+      break;
+    case 10:
+      if (numBlocks > 0) {
+        dispense();
+      } else {
+        MetaState = 7;
+      }
+      break;
+    default:
+      break;
+  }
   switch (Command) {
     case 's':
     case 'S':  // Stop current action
@@ -294,7 +391,18 @@ void loop() {
       break;
     case 'g':
     case 'G':
-      position = direction;
+      START = true;
+      Command = 0;
+      break;
+    case 'n':
+    case 'N':
+      if (!NOSHIELD) {
+        NOSHIELD = true;
+        Serial.println("NO PROTECTION (shield off)");
+      } else {
+        NOSHIELD = false;
+        Serial.println("FULL PROTECTION (shield on)");
+      }
       Command = 0;
       break;
     default:
