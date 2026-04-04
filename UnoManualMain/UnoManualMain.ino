@@ -49,4 +49,9 @@ void loop(){
     Serial.print("You sent: ");
     Serial.println(input);
   }
+  if(Serial1.available()){
+    delay(20);
+    String input = String(Serial1.readStringUntil('\n'));
+    Serial.println(input);
+  }
 }
