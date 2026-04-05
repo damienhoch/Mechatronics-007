@@ -22,19 +22,18 @@ bool craft(char tool, char ore) {
             }
           } else {
             if (crafting_substate == 0) {
-              if (lineFollow('F', 100, 10)) {
-                CraftingDistance = 2;
-                if (DEBUGMODE) {
-                  Serial3.print("Desired Block: ");
-                  Serial3.print(desiredBlocks[crafting_substate]);
-                  Serial3.print("Actual Block: ");
-                  Serial3.println(currentBlocks[0]);
-                  Serial3.print("Actual Blocks: ");
-                  Serial3.println(currentBlocks);
-                }
-                dispense();
-                crafting_substate = 1;
+              //if (lineFollow('F', 100, 10)) {
+              CraftingDistance = 2;
+              if (DEBUGMODE) {
+                Serial3.print("Desired Block: ");
+                Serial3.print(desiredBlocks[crafting_substate]);
+                Serial3.print("Actual Block: ");
+                Serial3.println(currentBlocks[0]);
+                Serial3.print("Actual Blocks: ");
+                Serial3.println(currentBlocks);
               }
+              dispense();
+              crafting_substate = 1;
             } else if (crafting_substate == 1) {
               if (turnDeg('r', 10, 0, DEBUGMODE)) {
                 if (DEBUGMODE) {
@@ -59,19 +58,21 @@ bool craft(char tool, char ore) {
                   Serial3.println(currentBlocks);
                 }
                 dispense();
-                while ((turnDeg('r', 10, 0, DEBUGMODE)))
-                  ;
+                while ((turnDeg('r', 10, 0, DEBUGMODE))) {
+                  delay(5);
+                }
                 crafting_substate = 3;
+                delay(5);
               }
             } else if (crafting_substate == 3) {
-              if (lineFollow('R', 7, 10)) {
+              if (lineFollow('R', 7, autonomous_approach_speed)) {
                 CraftingDistance = CraftingDistance + 6;
                 crafting_substate = 4;
                 dispense();
               }
             } else if (crafting_substate == 4) {
               if (CraftingDistance == 8) {
-                if (lineFollow('R', 7, 10)) {
+                if (lineFollow('R', 7, autonomous_approach_speed)) {
                   dispense();
                   crafting_substate = 0;
                   DONECRAFTING = true;
@@ -110,11 +111,11 @@ bool craft(char tool, char ore) {
             }
           } else {
             if (crafting_substate == 0) {
-              if (lineFollow('F', 100, 10)) {
-                CraftingDistance = 2;
-                dispense();
-                crafting_substate = 1;
-              }
+              //if (lineFollow('F', 100, 10)) {
+              CraftingDistance = 2;
+              dispense();
+              crafting_substate = 1;
+              //}
               if (DEBUGMODE) {
                 Serial3.print("Desired Block: ");
                 Serial3.print(desiredBlocks[crafting_substate]);
@@ -177,13 +178,11 @@ bool craft(char tool, char ore) {
                 DONECRAFTING = true;
                 NOSHIELD = false;
               } else {
-                if (lineFollow('R', 13, 10)) {
-                  dispense();
-                  dispense();
-                  crafting_substate = 0;
-                  DONECRAFTING = true;
-                  NOSHIELD = false;
-                }
+                dispense();
+                dispense();
+                crafting_substate = 0;
+                DONECRAFTING = true;
+                NOSHIELD = false;
               }
             }
           }

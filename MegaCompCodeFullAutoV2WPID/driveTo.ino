@@ -24,7 +24,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 4) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 5;
         } else if (drive_to_substate == 5) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'T';
@@ -42,7 +42,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 4) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 5;
         } else if (drive_to_substate == 5) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'A';
@@ -60,7 +60,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 4) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 5;
         } else if (drive_to_substate == 5) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'K';
@@ -79,7 +79,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'T';
@@ -95,7 +95,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'A';
@@ -111,7 +111,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'K';
@@ -128,7 +128,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('F', 1000., autonomous_speed)) {
+          if (lineFollow('F', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'C';
@@ -161,7 +161,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'M';
@@ -177,7 +177,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'K';
@@ -193,7 +193,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'A';
@@ -207,9 +207,9 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 2) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 3;
         } else if (drive_to_substate == 3) {
-          if (lineFollow('R', 10, autonomous_speed)) drive_to_substate = 4;
+          if (lineFollow('R', 10, autonomous_approach_speed)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('F', 1000., autonomous_speed)) {
+          if (lineFollow('F', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'C';
@@ -228,7 +228,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'M';
@@ -244,7 +244,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'K';
@@ -272,11 +272,11 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 1) {
           if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 2;
         } else if (drive_to_substate == 2) {
-          if (driveDistance('R', 95, autonomous_speed, DEBUGMODE)) drive_to_substate = 3;
+          if (driveDistance('R', 93, autonomous_speed, DEBUGMODE)) drive_to_substate = 3;
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'T';
@@ -292,7 +292,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'A';
@@ -311,7 +311,9 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('F', 10., autonomous_speed)) drive_to_substate = 5;
+        } else if (drive_to_substate == 5) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'M';
@@ -327,7 +329,9 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('F', 10., autonomous_speed)) drive_to_substate = 5;
+        } else if (drive_to_substate == 5) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'K';
@@ -343,7 +347,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 4) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 5;
         } else if (drive_to_substate == 5) {
-          if (lineFollow('F', 1000., autonomous_speed)) {
+          if (lineFollow('F', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'C';
@@ -359,7 +363,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 4) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 5;
         } else if (drive_to_substate == 5) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'T';
@@ -378,7 +382,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'T';
@@ -394,7 +398,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'A';
@@ -410,7 +414,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'M';
@@ -427,7 +431,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('R', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('F', 1000., autonomous_speed)) {
+          if (lineFollow('F', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'C';
@@ -460,7 +464,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'M';
@@ -476,7 +480,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'K';
@@ -492,7 +496,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (turnDeg('L', 90., 0., DEBUGMODE)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('R', 1000., autonomous_speed)) {
+          if (lineFollow('R', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'T';
@@ -508,7 +512,7 @@ bool driveTo(char destination) {
         } else if (drive_to_substate == 3) {
           if (lineFollow('R', 10, autonomous_speed)) drive_to_substate = 4;
         } else if (drive_to_substate == 4) {
-          if (lineFollow('F', 1000., autonomous_speed)) {
+          if (lineFollow('F', 1000., autonomous_approach_speed)) {
             drive_to_substate = 0;
             DONEDrive = true;
             position = 'C';

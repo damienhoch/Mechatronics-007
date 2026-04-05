@@ -10,6 +10,7 @@ VarSpeedServo DispenseServo;
 // DEBUG
 bool DEBUGMODE = false;
 int autonomous_speed = 30;
+int autonomous_approach_speed = 15;
 int drive_to_substate = 0;
 int crafting_substate = 0;
 int numAttempts = 0;
@@ -22,8 +23,12 @@ char goal = 'P';
 char defaultTree = 'T';  // Tree: T = left A = right (Aspen)
 char defaultMine = 'M';  // Mine: M = left K = right
 int craftingRangefinderTol = 1;
-int craftPauseTime = 50;
+int craftPauseTime = 250;
 int CraftingDistance = 2;
+bool RESTART = true;
+float errorOld = 0;
+double deltaT;
+double dispenseTimout = 15000;
 
 //////////////////////////////////////////////////////////////
 //Communication Variables
@@ -69,7 +74,7 @@ const int DispenseServoPin = A2;
 int MineDelay = 150;  // Amount of time to wait between mining strokes
 int mineStrokes;
 const int mineServoRest = 45;
-const int mine1 = 160;
+const int mine1 = 165;
 const int mine2 = 140;
 int loadDelay = 500;
 const int dispense1 = 80;
@@ -109,9 +114,11 @@ double t = 0.;
 double tStart = 0.;
 double loadTime = 1750.0;  // Load time before considered failure. (ms)
 //char currentBlocks[] = { 'W', 'W', 'W', 'W', 'W', 'W', 'R' };  // Shield test
-//char currentBlocks[] = { 'Y', 'Y', 'Y', 'W', 'W', 'W', 'R' };  // Pickaxe test
-char currentBlocks[] = { 'E', 'E', 'E', 'E', 'E', 'E', 'E' };  // Blocks on the robot.
-int numBlocks = 0;
+char currentBlocks[] = { 'Y', 'Y', 'Y', 'W', 'W', 'W', 'R' };  // Pickaxe test
+//char currentBlocks[] = { 'E', 'E', 'E', 'E', 'E', 'E', 'E' };  // Blocks on the robot.
+int numBlocks = 7;
+char position = 'C';
+
 
 // Color Sensor
 const int colorPins[4] = { 47, 49, 48, 50 };
@@ -122,7 +129,7 @@ int thresholdHigh[][3] = { { 100, 30, 30 }, { 80, 60, 40 }, { 20, 40, 100 } };
 char blockColor;
 
 // Hall Effect Sensor
-const float HeThreshold = 1.;  // V
+const float HeThreshold = 0.5;  // V
 const int HeRead = A5;
 float HeVal = 0;
 bool SilverFish = false;
@@ -137,13 +144,15 @@ bool NOSHIELD = true;
 // Motor
 DualTB9051FTGMotorShieldUnoMega md;
 int m1c = 0, m2c = 0;  //declare and initialize motor commands
-double Kp = 100;       //Proportional Gain for Line Following
-double KiLF = 0;
-double base_speed = 100;     //Nominal speed of robot
-int MineApproachStop = 3.5;  // Stop distance from the wall (cm)
-int MineApproachSlow = 9;    // Distance at which you start slowing at wall approach.
-int CraftApproachStop = 2;   // Stop distance from the wall (cm)
-int CraftApproachSlow = 7;   // Distance at which you start slowing at wall approach.
+double Kp = 120;       //Proportional Gain for Line Following
+double KiLF = 200;
+double KdLF = 0.9;
+double base_speed = 100;        //Nominal speed of robot
+float MineApproachStop = 3;     // Stop distance from the wall (cm)
+float MineApproachSlow = 9;     // Distance at which you start slowing at wall approach.
+float CraftApproachStop = 1.5;  // Stop distance from the wall (cm)
+
+float CraftApproachSlow = 5;  // Distance at which you start slowing at wall approach.
 
 // Motor Encoders
 Encoder leftEnc(20, 21);   // encoder 1
@@ -152,7 +161,6 @@ long counts1, counts2;
 double t_old = 0.;
 double t0 = 0.;
 double print_time = 0.;
-char position = 'S';
 bool DRIVINGDISTANCEUNTILRANGEFINDER = false;
 
 // Constants
@@ -163,11 +171,11 @@ double D = 28.;          // distance between wheels in cm
 const int min_motor_speed = 25;
 
 // Trajectory Following
-double KpL = 80;  // Proportional gain for Linear (FWD/BWD) trajectory following
-double KpT = 80;  // Proportional gain for TURNING trajectory following
-double Ki = 400;  // Integral gain
-double Kd = 0.9;  // Derivative gain
-bool ISARC;       // Turn in place or drive in arc
+double KpL = 110;  // Proportional gain for Linear (FWD/BWD) trajectory following
+double KpT = 110;  // Proportional gain for TURNING trajectory following
+double Ki = 450;   // Integral gain
+double Kd = 0.9;   // Derivative gain
+bool ISARC;        // Turn in place or drive in arc
 double integral1 = 0, integral2 = 0;
 double dErrordt1 = 0;
 double dErrordt2 = 0;
@@ -248,7 +256,12 @@ void loop() {
         TowerServo.write(180);
         TOWERDOWN = true;
         delay(10);
+        DispenseServo.write(dispense1);
+        delay(10);
         MetaState = 1;
+        memset(currentBlocks, 'E', sizeof(currentBlocks));
+        numBlocks = 0;
+        position = 'S';
         if (currentAxe == 0 || (currentAxe == 1 && !NOSHIELD)) {
           goal = 'P';
         } else if (currentAxe == 1 && NOSHIELD) {
@@ -263,10 +276,20 @@ void loop() {
       DONEWITHCOMMAND = driveTo(defaultMine);
       switch (goal) {
         case 'P':
-          if (DONEWITHCOMMAND) MetaState = 2;
+          if (DONEWITHCOMMAND) {
+            MetaState = 2;
+            RESTART = false;
+          }
           break;
         case 'S':
-          if (DONEWITHCOMMAND) MetaState = 3;
+          if (DONEWITHCOMMAND) {
+            if (RESTART) {
+              MetaState = 3;
+              RESTART = false;
+            } else {
+              MetaState = 2;
+            }
+          }
           break;
       }
 
@@ -313,13 +336,21 @@ void loop() {
       DispenseServo.write(dispense2);
       DONEWITHCOMMAND = craft(goal, desiredOre[currentAxe + 1]);
       if (numBlocks == 0 && !DONEWITHCOMMAND) {  // Out of blocks, not done crafting
-        CraftingDistance = 2;
+        if (goal == 'S') {
+          CraftApproachSlow = 18;
+          CraftApproachStop = 12;
+        } else if (goal == 'P') {
+          CraftApproachStop = 7;
+          CraftApproachSlow = 10;
+        }
         if (desiredNumOre > 0) {  // Need ore, drive back to mine
           MetaState = 1;
         } else if (desiredNumWood > 0) {  // Need wood, drive back to tree
           MetaState = 3;
         }
-      } else if (DONEWITHCOMMAND) {         // Successfully crafted
+      } else if (DONEWITHCOMMAND) {  // Successfully crafted
+        CraftApproachStop = 1.5;
+        CraftApproachSlow = 5;
         if (currentAxe == 1 && NOSHIELD) {  // Stone axe made, make a shield
           goal = 'S';
           desiredNumOre = 1;
@@ -416,8 +447,8 @@ void loop() {
         break;
       case 'x':
       case 'X':  // Drop Tower
-        TowerServo.write(180);
-        TOWERDOWN = true;
+        TowerServo.write(90);
+        TOWERDOWN = false;
         break;
       case 'm':
       case 'M':  // Set default mine
@@ -482,6 +513,24 @@ void loop() {
           Serial3.println("FULL PROTECTION (shield on)");
         }
         Command = 0;
+        break;
+      case 'q':
+      case 'Q':  // test missload
+        missLoad();
+        Command = 0;
+        break;
+      case 'h':
+      case 'H':  // test hall effect sensor
+        for (int i = 0; i < 5; i++) {
+          HeVals[i] = map(analogRead(A5), 0, 1023, 0, 500) / 100.0;
+        }
+        HeVal = movingAverage(HeVals, 5);
+        delay(500);
+        Serial3.println(HeVal);
+        if (abs(HeVal - quiescent) > HeThreshold) {
+          SilverFish = true;
+          Serial3.println("Silverfish Detected");
+        }
         break;
       default:
         break;
